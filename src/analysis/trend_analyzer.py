@@ -10,8 +10,16 @@ import re
 class TrendAnalyzer:
     def __init__(self):
         self.nlp = spacy.load('en_core_web_sm')
-        self.vectorizer = TfidfVectorizer(max_features=1000)
-        self.lda = LatentDirichletAllocation(n_components=5, random_state=42)
+        self.vectorizer = TfidfVectorizer(
+            max_features=1000,
+            stop_words='english',
+            ngram_range=(1, 2)  # Include both single words and bigrams
+        )
+        self.lda = LatentDirichletAllocation(
+            n_components=5,  # Number of topics
+            random_state=42,
+            max_iter=10
+        )
         
         # Simple sentiment word lists
         self.positive_words = set(['good', 'great', 'excellent', 'amazing', 'love', 'best', 'perfect', 'wonderful', 'fantastic', 'awesome'])
@@ -72,7 +80,10 @@ class TrendAnalyzer:
                 'top_words': top_words
             })
         
-        return topics
+        # Add topic distribution to the dataframe
+        df['topic_id'] = lda_output.argmax(axis=1)
+        
+        return topics, df
     
     def analyze_sentiment(self, df):
         """Analyze sentiment trends over time using a simple word-based approach."""

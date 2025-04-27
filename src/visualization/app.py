@@ -25,6 +25,18 @@ def create_layout():
             dcc.Graph(id='comment-length-graph')
         ]),
         
+        # Topic distribution
+        html.Div([
+            html.H2("Topic Distribution"),
+            dcc.Graph(id='topic-graph')
+        ]),
+        
+        # Topic details
+        html.Div([
+            html.H2("Topic Details"),
+            html.Div(id='topic-details')
+        ]),
+        
         # Day of week distribution
         html.Div([
             html.H2("Comment Activity by Day of Week"),
@@ -57,6 +69,8 @@ app.layout = create_layout()
 @app.callback(
     [Output('comment-volume-graph', 'figure'),
      Output('comment-length-graph', 'figure'),
+     Output('topic-graph', 'figure'),
+     Output('topic-details', 'children'),
      Output('day-graph', 'figure'),
      Output('hour-graph', 'figure')],
     [Input('time-window-selector', 'value')]
@@ -64,9 +78,6 @@ app.layout = create_layout()
 def update_graphs(time_window):
     # Load processed data from output directory
     df = pd.read_csv('output/processed_data.csv')
-    
-    # Print available columns for debugging
-    print("Available columns:", df.columns.tolist())
     
     # Parse timestamps using the same approach as the processor
     try:
@@ -96,6 +107,34 @@ def update_graphs(time_window):
         nbins=50
     )
     
+    # Topic distribution
+    if 'topic_id' in df.columns:
+        topic_fig = px.pie(
+            df.groupby('topic_id').size().reset_index(),
+            values=0,
+            names='topic_id',
+            title='Distribution of Topics'
+        )
+    else:
+        # Create an empty figure if topic_id is not present
+        topic_fig = go.Figure()
+        topic_fig.add_annotation(
+            text="Topic distribution data not available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5,
+            showarrow=False
+        )
+    
+    # Topic details
+    topic_details = []
+    for topic_id in sorted(df['topic_id'].unique()):
+        topic_comments = df[df['topic_id'] == topic_id]['processed_comment'].head(5)
+        topic_details.append(html.Div([
+            html.H3(f"Topic {topic_id}"),
+            html.P("Sample comments:"),
+            html.Ul([html.Li(comment) for comment in topic_comments])
+        ]))
+    
     # Day of week distribution
     day_fig = px.bar(
         df.groupby('day_of_week').size().reset_index(),
@@ -112,7 +151,7 @@ def update_graphs(time_window):
         title='Comment Activity by Hour of Day'
     )
     
-    return volume_fig, length_fig, day_fig, hour_fig
+    return volume_fig, length_fig, topic_fig, topic_details, day_fig, hour_fig
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=8050, debug=True) 

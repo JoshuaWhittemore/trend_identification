@@ -36,28 +36,24 @@ def main():
     processed_df = data_processor.process_data(df)
     print("Data processing completed")
 
+    # Perform topic modeling
+    print("\nPerforming topic modeling...")
+    topics, processed_df = trend_analyzer.perform_topic_modeling(processed_df)
+    print("Topic modeling completed")
+
     # Save processed data
     print("\nSaving processed data...")
     processed_df.to_csv(os.path.join(args.output, "processed_data.csv"), index=False)
     print("Processed data saved")
 
-    # Perform analysis
-    print("\nPerforming trend analysis...")
-    trends = trend_analyzer.identify_trends(processed_df)
-    topics = trend_analyzer.perform_topic_modeling(processed_df)
-    sentiment = trend_analyzer.analyze_sentiment(processed_df)
-    print("Analysis completed")
-
-    # Save results
-    print("\nSaving results...")
-    trends.to_csv(os.path.join(args.output, "trends.csv"), index=False)
+    # Save topic information
+    print("\nSaving topic information...")
     with open(os.path.join(args.output, "topics.json"), "w") as f:
         json.dump(topics, f, indent=2)
-    sentiment.to_csv(os.path.join(args.output, "sentiment.csv"))
-    print("Results saved")
+    print("Topic information saved")
 
     print(f"\nAnalysis complete. Results saved to {args.output}")
-    print("To view the visualization dashboard, run: python src/visualization/app.py")
+    print("To view the visualization dashboard, run: docker-compose up")
 
 if __name__ == "__main__":
     main() 

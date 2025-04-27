@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app # Mount the entire project directory
+      - ./data:/app/data:rw # Explicitly mount data directory with read-write
+      - ./output:/app/output:rw # Explicitly mount output directory with read-write
+    ports:
+      - "8050:8050" # For the Dash app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=utf-8
+    command: python src/visualization/app.py # Override the default command to run the visualization
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8050"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

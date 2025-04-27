@@ -1,0 +1,33 @@
+Trend Identification
+Hello, and welcome to your Scrollmark coding project! Please send back your completed project within the day you received it. You’re free to spend as much time as you’d like, but you’ll be evaluated as per expected work product in line with 3 hours of work.
+Problem Statement
+You are free to use the entirety of the Internet, and any GPT tools are completely in-scope for usage.
+
+A common problem for social media managers for large brands is listening to what their community wants and acting accordingly. Naturally, given that social media platforms are a noisy place, the data is also noisy.
+
+Your challenge, should you choose to accept it, is to create a metrics-driven report of trends and topics of interest, and how they shift over time, for consumers of @treehut, a popular skincare brand that’s active on Instagram.
+
+We’ve prepared a corpus of ~18,000 comments left on their posts in March 2025 containing the
+
+`timestamp`
+`media_id`
+`media_caption`
+`comment_text`
+
+Put yourself in the shoes of a social media manager and process this data however you see fit to extract relevant data.
+
+Deliverables
+Please provide a minimal report of what you’ve built (it doesn’t need to be well-written, just descriptive). Perhaps 1-2 sentences for each of the following bullet points:
+
+What you’ve built, why you’ve built it that way, and any instructions for how to run it or use it. Please outline your thought process around why you designed the steps of your processing pipeline in the way that you did, and why you selected the graphs/visualizations you did.
+A PDF, web app, PNGs of individual graphs, whatever showcases what you’ve discovered in the most presentable way possible. This is your most important deliverable, something that clearly visualizes useful data that you’ve been able to extract from the dataset, and an explanation of why you chose to extract that data / why it’s useful.
+What AI tools did you use while working? (remember, you’re allowed to use anything you want, so don’t pull any punches here)
+What features would you add if you were to continue to extend the project?
+Evaluation Criteria
+For transparency, your final output will be evaluated based on the following criteria:
+
+Speed. How fast can you prototype? Our team iterates very quickly, and your ability to think through and prototype solutions quickly and independently is huge.
+Resourcefulness. You have the entire Internet with its AI arsenal, open source tools, documentation, etc. at your fingertips! How good are you at leveraging these tools to improve your shipping velocity? How good are you at leveraging these tools to allow yourself to perform tasks outside of your core skillset?
+Product Sense. It’s a really important and valuable skill to have an intuition for what is / what will lead to a great product experience. On the job, even if you’re just prototyping with notebooks or shipping models to production, it’s important that you have a strong sense of how good the look & feel of what you’ve produced will look like.
+Code Quality. LLMs are great coding assistants, and if hired you’ll be encouraged to leverage their power! However, they currently require a lot of massaging and intentional usage to keep code quality high and prevent “slop” generation. How extensible and well-organized is your final work product?
+

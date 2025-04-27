@@ -11,7 +11,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONIOENCODING=utf-8
     command: >
-      sh -c "python src/main.py --data data/raw_data.csv --output output &&
+      sh -c "python src/main.py --data data/engagements.csv --output output &&
              python src/visualization/app.py"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8050"]

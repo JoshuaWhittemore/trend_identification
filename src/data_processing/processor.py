@@ -12,6 +12,15 @@ class DataProcessor:
         self.nlp = spacy.load('en_core_web_sm')
         self.stop_words = set(stopwords.words('english'))
         
+    def extract_hashtags(self, text):
+        """Extract hashtags from text."""
+        if not isinstance(text, str):
+            return []
+        # Find all hashtags (words starting with #)
+        hashtags = re.findall(r'#\w+', text)
+        # Remove the # symbol and convert to lowercase
+        return [tag[1:].lower() for tag in hashtags]
+        
     def load_data(self, file_path):
         """Load the raw data from CSV file."""
         return pd.read_csv(file_path)
@@ -55,6 +64,9 @@ class DataProcessor:
         df['processed_comment'] = df['comment_text'].apply(self.preprocess_text)
         df['processed_caption'] = df['media_caption'].apply(self.preprocess_text)
         
+        # Extract hashtags
+        df['hashtags'] = df['media_caption'].apply(self.extract_hashtags)
+        
         # Extract additional features
         df['comment_length'] = df['comment_text'].str.len()
         df['hour'] = df['timestamp'].dt.hour
@@ -69,6 +81,8 @@ class DataProcessor:
             'unique_media': df['media_id'].nunique(),
             'date_range': (df['timestamp'].min(), df['timestamp'].max()),
             'avg_comment_length': df['comment_length'].mean(),
-            'comments_per_day': df.groupby(df['timestamp'].dt.date).size().mean()
+            'comments_per_day': df.groupby(df['timestamp'].dt.date).size().mean(),
+            'total_hashtags': sum(len(tags) for tags in df['hashtags']),
+            'unique_hashtags': len(set(tag for tags in df['hashtags'] for tag in tags))
         }
         return stats 

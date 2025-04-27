@@ -20,10 +20,11 @@ RUN pip install --no-cache-dir \
     python-dotenv==1.0.0 \
     matplotlib==3.7.2 \
     seaborn==0.12.2 \
-    nltk==3.8.1
+    nltk==3.8.1 \
+    pytrends==4.9.0
 
 # Download required NLTK data
-RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
 
 # Download spaCy model
 RUN python -m spacy download en_core_web_sm

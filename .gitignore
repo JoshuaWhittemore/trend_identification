@@ -32,7 +32,6 @@ ENV/
 *.swo
 
 # Project specific
-data/*
 output/*
 !data/.gitkeep
 !output/.gitkeep

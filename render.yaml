@@ -7,18 +7,16 @@ services:
       python -m spacy download en_core_web_sm
       python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
       mkdir -p data output
-    startCommand: |
-      if [ ! -f "data/engagements.csv" ]; then
-        echo "Error: engagements.csv not found in data directory"
-        exit 1
-      fi
-      python src/main.py --data data/engagements.csv --output output &&
-      gunicorn src.visualization.app:server --config gunicorn_config.py
+    startCommand: gunicorn src.visualization.app:server --config gunicorn_config.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: PYTHONPATH
         value: /opt/render/project/src
+      - key: DATA_PATH
+        value: /opt/render/project/src/data/engagements.csv
+      - key: OUTPUT_PATH
+        value: /opt/render/project/src/output
     disk:
       name: data
       mountPath: /opt/render/project/src/data

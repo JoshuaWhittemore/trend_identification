@@ -21,7 +21,8 @@ RUN pip install --no-cache-dir \
     matplotlib==3.7.2 \
     seaborn==0.12.2 \
     nltk==3.8.1 \
-    pytrends==4.9.0
+    pytrends==4.9.0 \
+    gunicorn==21.2.0
 
 # Download required NLTK data
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
@@ -37,6 +38,10 @@ RUN mkdir -p data output
 
 # Set environment variables
 ENV PYTHONPATH=/app
+ENV PORT=10000
+
+# Expose the port
+EXPOSE 10000
 
 # Command to run the application
-CMD ["python", "src/main.py"] 
+CMD ["gunicorn", "src.visualization.app:server", "--config", "gunicorn_config.py"] 

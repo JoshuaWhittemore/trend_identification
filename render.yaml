@@ -6,7 +6,9 @@ services:
       pip install -r requirements.txt
       python -m spacy download en_core_web_sm
       python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-    startCommand: gunicorn src.visualization.app:server --config gunicorn_config.py
+    startCommand: |
+      python src/main.py --data data/engagements.csv --output output &&
+      gunicorn src.visualization.app:server --config gunicorn_config.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0

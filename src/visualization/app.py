@@ -24,10 +24,63 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = dash.Dash(__name__)
+server = app.server  # Expose server variable for deployment
 
 def create_layout():
     return html.Div([
         html.H1("Treehut Social Media Trend Analysis"),
+        
+        # Daily keyword trends (moved to top)
+        html.Div([
+            html.H2("Daily Keyword Trends"),
+            dcc.Graph(id='daily-keyword-graph')
+        ]),
+        
+        # Keyword Analysis Section
+        html.Div([
+            html.H2("Keyword Analysis"),
+            
+            # Keyword frequency bar chart
+            html.Div([
+                html.H3("Keyword Frequency"),
+                dcc.Graph(id='keyword-frequency-graph')
+            ]),
+            
+            # Keyword details
+            html.Div([
+                html.H3("Keyword Details"),
+                dcc.Dropdown(
+                    id='keyword-selector',
+                    options=[],  # Will be populated in callback
+                    value=None,
+                    placeholder="Select a keyword to view details"
+                ),
+                html.Div(id='keyword-details')
+            ]),
+            
+            # Related terms network graph
+            html.Div([
+                html.H3("Related Terms Network"),
+                dcc.Graph(id='related-terms-graph')
+            ]),
+            
+            # Hashtag Analysis (moved here)
+            html.Div([
+                html.H3("Hashtag Analysis"),
+                
+                # Hashtag frequency bar chart
+                html.Div([
+                    html.H4("Hashtag Frequency"),
+                    dcc.Graph(id='hashtag-frequency-graph')
+                ]),
+                
+                # Hashtag co-occurrence network
+                html.Div([
+                    html.H4("Hashtag Co-occurrence Network"),
+                    dcc.Graph(id='hashtag-network-graph')
+                ])
+            ])
+        ]),
         
         # Time series of comment volume
         html.Div([
@@ -65,52 +118,6 @@ def create_layout():
             dcc.Graph(id='hour-graph')
         ]),
         
-        # Hashtag Analysis Section
-        html.Div([
-            html.H2("Hashtag Analysis"),
-            
-            # Hashtag frequency bar chart
-            html.Div([
-                html.H3("Hashtag Frequency"),
-                dcc.Graph(id='hashtag-frequency-graph')
-            ]),
-            
-            # Hashtag co-occurrence network
-            html.Div([
-                html.H3("Hashtag Co-occurrence Network"),
-                dcc.Graph(id='hashtag-network-graph')
-            ])
-        ]),
-        
-        # Keyword Analysis Section
-        html.Div([
-            html.H2("Keyword Analysis"),
-            
-            # Keyword frequency bar chart
-            html.Div([
-                html.H3("Keyword Frequency"),
-                dcc.Graph(id='keyword-frequency-graph')
-            ]),
-            
-            # Keyword details
-            html.Div([
-                html.H3("Keyword Details"),
-                dcc.Dropdown(
-                    id='keyword-selector',
-                    options=[],  # Will be populated in callback
-                    value=None,
-                    placeholder="Select a keyword to view details"
-                ),
-                html.Div(id='keyword-details')
-            ]),
-            
-            # Related terms network graph
-            html.Div([
-                html.H3("Related Terms Network"),
-                dcc.Graph(id='related-terms-graph')
-            ])
-        ]),
-        
         # Time window selector
         html.Div([
             html.Label("Select Time Window:"),
@@ -138,6 +145,7 @@ app.layout = create_layout()
      Output('hashtag-frequency-graph', 'figure'),
      Output('hashtag-network-graph', 'figure'),
      Output('keyword-frequency-graph', 'figure'),
+     Output('daily-keyword-graph', 'figure'),
      Output('keyword-selector', 'options'),
      Output('keyword-details', 'children'),
      Output('related-terms-graph', 'figure')],
@@ -209,12 +217,35 @@ def update_graphs(time_window, selected_keyword):
         logger.info("Creating topic details")
         topic_details = "Topic details not available"
         if 'topic_id' in df.columns:
-            topic_details = html.Div([
-                html.Div([
-                    html.H3(f"Topic {topic_id}"),
-                    html.P(f"Number of comments: {count}")
-                ]) for topic_id, count in df.groupby('topic_id').size().items()
-            ])
+            # Load topic information from JSON file
+            try:
+                with open('output/topics.json', 'r') as f:
+                    topics_info = json.load(f)
+                
+                topic_details = html.Div([
+                    html.Div([
+                        html.H3(f"Topic {topic_id}"),
+                        html.P(f"Number of comments: {count}"),
+                        html.P("Top words:", style={'fontWeight': 'bold'}),
+                        html.Ul([html.Li(word) for word in topics_info[topic_id]['top_words']]),
+                        html.P("Description:", style={'fontWeight': 'bold'}),
+                        html.P(get_topic_description(topics_info[topic_id]['top_words']))
+                    ], style={
+                        'marginBottom': '20px',
+                        'padding': '15px',
+                        'border': '1px solid #ddd',
+                        'borderRadius': '5px',
+                        'backgroundColor': '#f9f9f9'
+                    }) for topic_id, count in df.groupby('topic_id').size().items()
+                ])
+            except Exception as e:
+                logger.error(f"Error loading topic information: {str(e)}")
+                topic_details = html.Div([
+                    html.Div([
+                        html.H3(f"Topic {topic_id}"),
+                        html.P(f"Number of comments: {count}")
+                    ]) for topic_id, count in df.groupby('topic_id').size().items()
+                ])
         
         # Day of week distribution
         logger.info("Creating day of week graph")
@@ -314,6 +345,53 @@ def update_graphs(time_window, selected_keyword):
             labels={'keyword': 'Keyword', 'frequency': 'Frequency'}
         )
         
+        # Daily keyword trends
+        logger.info("Creating daily keyword trends graph")
+        # Get top 10 keywords from the frequency analysis
+        top_keywords = keyword_df.nlargest(10, 'frequency')['keyword'].tolist()
+        
+        # Create a DataFrame for daily keyword frequencies
+        daily_keyword_data = []
+        for date, group in df.groupby(df['timestamp'].dt.date):
+            # Get word frequencies for this day
+            day_words = ' '.join(group['processed_comment'].astype(str)).lower().split()
+            word_freq = pd.Series(day_words).value_counts()
+            
+            # Get frequencies for all top keywords
+            for keyword in top_keywords:
+                if keyword in word_freq:
+                    daily_keyword_data.append({
+                        'date': date,
+                        'keyword': keyword,
+                        'count': word_freq[keyword]
+                    })
+                else:
+                    # Add zero count for days when keyword doesn't appear
+                    daily_keyword_data.append({
+                        'date': date,
+                        'keyword': keyword,
+                        'count': 0
+                    })
+        
+        daily_keyword_df = pd.DataFrame(daily_keyword_data)
+        
+        # Create the time series plot
+        daily_keyword_fig = px.line(
+            daily_keyword_df,
+            x='date',
+            y='count',
+            color='keyword',
+            title='Daily Frequency of Top 10 Keywords',
+            labels={'date': 'Date', 'count': 'Frequency', 'keyword': 'Keyword'}
+        )
+        
+        daily_keyword_fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Frequency",
+            legend_title="Keyword",
+            hovermode='x unified'
+        )
+        
         # Keyword selector options
         keyword_options = [{'label': word, 'value': word} for word in keyword_df['keyword']]
         
@@ -406,8 +484,8 @@ def update_graphs(time_window, selected_keyword):
         
         logger.info("Graph update completed successfully")
         return (volume_fig, length_fig, topic_fig, topic_details, day_fig, hour_fig,
-                hashtag_freq_fig, hashtag_network_fig, keyword_freq_fig, keyword_options,
-                keyword_details, related_terms_fig)
+                hashtag_freq_fig, hashtag_network_fig, keyword_freq_fig, daily_keyword_fig,
+                keyword_options, keyword_details, related_terms_fig)
                 
     except Exception as e:
         logger.error(f"Error updating graphs: {str(e)}", exc_info=True)
@@ -420,6 +498,22 @@ def update_graphs(time_window, selected_keyword):
             showarrow=False
         )
         return [empty_fig] * 12
+
+def get_topic_description(top_words):
+    """Generate a description of the topic based on its top words."""
+    # This is a simple heuristic - you might want to customize this
+    if 'love' in top_words or 'like' in top_words:
+        return "This topic appears to be about positive sentiment and appreciation."
+    elif 'buy' in top_words or 'target' in top_words:
+        return "This topic seems to focus on purchasing and retail."
+    elif 'smell' in top_words or 'scent' in top_words:
+        return "This topic is related to product scents and fragrances."
+    elif 'question' in top_words or 'ask' in top_words:
+        return "This topic involves questions and inquiries."
+    elif 'prank' in top_words or 'fools' in top_words:
+        return "This topic is related to April Fools' Day content."
+    else:
+        return "This topic covers general discussion and engagement."
 
 if __name__ == '__main__':
     logger.info("Starting Dash application")

@@ -1,0 +1,1 @@
+web: gunicorn src.visualization.app:server --config gunicorn_config.py 

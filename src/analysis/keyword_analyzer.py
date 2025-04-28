@@ -24,7 +24,14 @@ class KeywordAnalyzer:
             'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other',
             'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also',
             'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way',
-            'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us'
+            'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us',
+            # Custom stop words for this project
+            'treehut', 'tree', 'love', 'need', 'zulu',
+            # Additional stop words
+            'real', 'really', 'send', 'thank', 'wait', 'where', 'wish',
+            'body', 'friend', 'great', 'hello', 'question', 'skin', 'stuff',
+            'april', 'best', 'bought', 'fools', 'found', 'looks',
+            'smell', 'smells', 'amazing', 'bring'
         ])
         self.max_keywords = 50  # Increased since we're not limited by API calls
         
@@ -102,7 +109,7 @@ class KeywordAnalyzer:
         
         return [{'phrase': phrase, 'count': count} for phrase, count in phrases.most_common(10)]
     
-    def analyze_keywords_in_corpus(self, df: pd.DataFrame, text_column: str = 'comment_text') -> pd.DataFrame:
+    def analyze_keywords_in_corpus(self, df: pd.DataFrame, text_column: str = 'processed_comment') -> pd.DataFrame:
         """Analyze keywords in the corpus and find related terms."""
         # Extract unique words from the corpus
         all_words = []
